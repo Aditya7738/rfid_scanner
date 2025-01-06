@@ -24,8 +24,8 @@ class _SelectBLEDeviceState extends State<SelectBLEDevice> {
   static const EventChannel scanChannel =
       EventChannel('com.example.rfid_flutter/scan');
 
-  static const MethodChannel methodChannel =
-      MethodChannel('com.example.rfid_flutter/command');
+  // static const MethodChannel methodChannel =
+  //     MethodChannel('com.example.rfid_flutter/command');
 
   @override
   void initState() {
@@ -61,8 +61,7 @@ class _SelectBLEDeviceState extends State<SelectBLEDevice> {
       _selectDeviceController.sendingDataWedgeCommand.value = true;
 
       String argumentAsJson = "{\"command\":$command,\"parameter\":$parameter}";
-      await methodChannel.invokeMethod(
-          'sendDataWedgeCommandStringParameter', argumentAsJson);
+      await platform.invokeMethod('sendCommandString', argumentAsJson);
 
       _selectDeviceController.sendingDataWedgeCommand.value = false;
     } catch (e) {
@@ -90,7 +89,9 @@ class _SelectBLEDeviceState extends State<SelectBLEDevice> {
 
   Future<void> _createProfile(String profileName) async {
     try {
-      await methodChannel.invokeMethod('createProfile', profileName);
+      await platform.invokeMethod('createProfile'
+          //, profileName
+          );
     } catch (e) {
       //  Error invoking Android method
       if (e is PlatformException) {
@@ -150,7 +151,7 @@ class _SelectBLEDeviceState extends State<SelectBLEDevice> {
                       )
                     : ElevatedButton(
                         onPressed: () async {
-                          await platform.invokeMethod('getPairedBTDevices');
+                          await platform.invokeMethod('getPairedDevices');
                         },
                         child: Text('Connect to RFID scanner'))),
           ),

@@ -16,13 +16,14 @@ class DWInterface() {
         const val DATAWEDGE_SEND_SET_CONFIG = "com.symbol.datawedge.api.SET_CONFIG"
     }
 
-    fun sendCommandString(context: Context, command: String, parameter: String, sendResult: Boolean = false) {
+    fun sendCommandString(context: Context, command: String, parameter: String, sendResult: Boolean = false): Boolean {
         val dwIntent = Intent()
         dwIntent.action = DATAWEDGE_SEND_ACTION
         dwIntent.putExtra(command, parameter)
         if (sendResult)
             dwIntent.putExtra(DATAWEDGE_EXTRA_SEND_RESULT, "true")
         context.sendBroadcast(dwIntent)
+        return true
     }
 
     fun sendCommandBundle(context: Context, command: String, parameter: Bundle): Boolean {
