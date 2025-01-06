@@ -83,13 +83,20 @@ class MainActivity : FlutterActivity() {
                                 intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY)
                                 val listenToBroadcastsFromOtherApps = true
                                 val receiverFlags =
-                                        if (listenToBroadcastsFromOtherApps) {  
+                                        if (listenToBroadcastsFromOtherApps) {
                                             ContextCompat.RECEIVER_EXPORTED
                                         } else {
                                             ContextCompat.RECEIVER_NOT_EXPORTED
                                         }
-                               // registerReceiver(dataWedgeBroadcastReceiver, intentFilter)
-                               ContextCompat.registerReceiver(context, dataWedgeBroadcastReceiver, intentFilter, null, null, receiverFlags)
+                                // registerReceiver(dataWedgeBroadcastReceiver, intentFilter)
+                                ContextCompat.registerReceiver(
+                                        context,
+                                        dataWedgeBroadcastReceiver,
+                                        intentFilter,
+                                        null,
+                                        null,
+                                        receiverFlags
+                                )
                             }
 
                             override fun onCancel(arguments: Any?) {
@@ -99,75 +106,127 @@ class MainActivity : FlutterActivity() {
                         }
                 )
 
-        MethodChannel(flutterEngine.dartExecutor, CHANNEL).setMethodCallHandler {
-                call,
-                result ->
+        MethodChannel(flutterEngine.dartExecutor, CHANNEL).setMethodCallHandler { call, result ->
             // This method is invoked on the main thread.
             // TODO
 
-            if (call.method == "isBluetoothSupported") {
+            print("${call.method} Method call handler invoked ")
 
-                if (isBluetoothSupported()) {
-                    result.success("Bluetooth is supported")
-                    // result.success(p0)
-                } else {
-                    result.error("UNAVAILABLE", "Bluetooth is not supported", null)
+            Log.d("METHODCHANNEL", "${call.method} Method call handler invoked ")
+
+            when (call.method) {
+                "isBluetoothSupported" -> {
+                    if (isBluetoothSupported()) {
+                        result.success("Bluetooth is supported")
+                        // result.success(p0)
+                    } else {
+                        result.error("UNAVAILABLE", "Bluetooth is not supported", null)
+                    }
                 }
-            } else {
-                result.notImplemented()
+                "getPairedDevices" -> {
+                    print("Getting paired devices")
+                    Log.d("BLUETOOTH", "getPairedBTDevices called")
+
+                    if (getPairedDevices()) {
+                        result.success("RFID Scanner is connected")
+                        // result.success(p0)
+                    } else {
+                        result.error("Not found", "RFID Scanner not found", null)
+                    }
+                }
+                "sendCommandString" -> {
+                    Log.d("RFIDScanner", "sendDataWedgeCommandStringParameter")
+
+                    val arguments = JSONObject(call.arguments.toString())
+                    // val command: String = arguments.get("command") as String
+                    // val parameter: String = arguments.get("parameter") as String
+                    if (
+                    // dwInterface.sendCommandString(applicationContext, command, parameter
+                    dwInterface.sendCommandString(
+                                    applicationContext,
+                                    arguments.get("command") as String,
+                                    arguments.get("parameter") as String
+                            )
+                    ) {
+                        Log.d("RFIDScanner", "Command sent successfully")
+                        result.success("Command sent successfully")
+                    } else {
+                        Log.d("RFIDScanner", "Command not sent")
+                        result.error("UNSUCCESS", "Command not sent", null)
+                    }
+                    //  result.success(0);  //  DataWedge does not return responses
+                }
+                "createProfile" -> {
+                    Log.d("RFIDScanner", "createProfile")
+
+                    Log.d("RFIDScannerARGUMENTS", call.arguments.toString())
+                    if (createProfile(call.arguments.toString())) {
+                        Log.d("RFIDScanner", "Profile created successfully")
+                        result.success("Profile created successfully")
+
+                    } else {
+                        Log.d("RFIDScanner", "Profile is not created")
+                        result.error("UNSUCCESS", "Profile is not created", null)
+                    }
+                }
+                else -> {
+                    result.notImplemented()
+                }
             }
 
-            if (call.method == "getPairedDevices") {
+            // if (call.method == "isBluetoothSupported") {
 
-                print("Getting paired devices")
-                Log.d("BLUETOOTH", "getPairedBTDevices called")
+            //     if (isBluetoothSupported()) {
+            //         result.success("Bluetooth is supported")
+            //         // result.success(p0)
+            //     } else {
+            //         result.error("UNAVAILABLE", "Bluetooth is not supported", null)
+            //     }
+            // } else if (call.method == "getPairedDevices") {
 
-                if (getPairedDevices()) {
-                    result.success("RFID Scanner is connected")
-                    // result.success(p0)
-                } else {
-                    result.error("Not found", "RFID Scanner not found", null)
-                }
-            } else {
-                result.notImplemented()
-            }
+            //     print("Getting paired devices")
+            //     Log.d("BLUETOOTH", "getPairedBTDevices called")
 
-            if (
-                call.method == "sendCommandString"    
-            //call.method == "sendDataWedgeCommandStringParameter"
-            ) {
+            //     if (getPairedDevices()) {
+            //         result.success("RFID Scanner is connected")
+            //         // result.success(p0)
+            //     } else {
+            //         result.error("Not found", "RFID Scanner not found", null)
+            //     }
+            // } else if (call.method == "sendCommandString"
+            // // call.method == "sendDataWedgeCommandStringParameter"
+            // ) {
 
-                Log.d("RFIDScanner", "sendDataWedgeCommandStringParameter")
+            //     Log.d("RFIDScanner", "sendDataWedgeCommandStringParameter")
 
-                val arguments = JSONObject(call.arguments.toString())
-                // val command: String = arguments.get("command") as String
-                // val parameter: String = arguments.get("parameter") as String
-                if (
-                    //dwInterface.sendCommandString(applicationContext, command, parameter
-                    dwInterface.sendCommandString(applicationContext, arguments.get("command") as String, arguments.get("parameter") as String
-                    )) {
-                    result.success("Command sent successfully")
-                } else {
-                    result.error("UNSUCCESS", "Command not sent", null)
-                }
-                //  result.success(0);  //  DataWedge does not return responses
-            } else {
-                result.notImplemented()
-            }
+            //     val arguments = JSONObject(call.arguments.toString())
+            //     // val command: String = arguments.get("command") as String
+            //     // val parameter: String = arguments.get("parameter") as String
+            //     if (
+            //     // dwInterface.sendCommandString(applicationContext, command, parameter
+            //     dwInterface.sendCommandString(
+            //                     applicationContext,
+            //                     arguments.get("command") as String,
+            //                     arguments.get("parameter") as String
+            //             )
+            //     ) {
+            //         result.success("Command sent successfully")
+            //     } else {
+            //         result.error("UNSUCCESS", "Command not sent", null)
+            //     }
+            //     //  result.success(0);  //  DataWedge does not return responses
+            // } else if (call.method == "createProfile") {
 
-            if (call.method == "createProfile") {
+            //     Log.d("RFIDScanner", "createProfile")
+            //     if (createProfile(call.arguments.toString())) {
+            //         result.success("Profile created successfully")
+            //     } else {
+            //         result.error("UNSUCCESS", "Profile is not created", null)
+            //     }
+            // } else {
+            //     result.notImplemented()
+            // }
 
-                Log.d("RFIDScanner", "createProfile")
-                if (createProfile(
-                    //call.arguments.toString()
-                    )) {
-                    result.success("Profile created successfully")
-                } else {
-                    result.error("UNSUCCESS", "Profile is not created", null)
-                }
-            } else {
-                result.notImplemented()
-            }
         }
     }
 
@@ -220,12 +279,12 @@ class MainActivity : FlutterActivity() {
 
     private val PROFILE_INTENT_BROADCAST = "2"
 
-     fun createProfile(): Boolean {
+    fun createProfile(profileName: String): Boolean {
         //  Create and configure the DataWedge profile associated with this application
         //  For readability's sake, I have not defined each of the keys in the DWInterface file
-        dwInterface.sendCommandString(this, DWInterface.DATAWEDGE_SEND_CREATE_PROFILE, "profileName")
+        dwInterface.sendCommandString(this, DWInterface.DATAWEDGE_SEND_CREATE_PROFILE, profileName)
         val profileConfig = Bundle()
-        profileConfig.putString("PROFILE_NAME", "profileName")
+        profileConfig.putString("PROFILE_NAME", profileName)
         profileConfig.putString("PROFILE_ENABLED", "true") //  These are all strings
         profileConfig.putString("CONFIG_MODE", "UPDATE")
         val barcodeConfig = Bundle()
@@ -265,7 +324,7 @@ class MainActivity : FlutterActivity() {
         )
     }
 
-     fun createDataWedgeBroadcastReceiver(events: EventSink?): BroadcastReceiver? {
+    fun createDataWedgeBroadcastReceiver(events: EventSink?): BroadcastReceiver? {
         return object : BroadcastReceiver() {
 
             override fun onReceive(context: Context, intent: Intent) {

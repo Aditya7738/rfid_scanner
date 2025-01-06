@@ -89,9 +89,7 @@ class _SelectBLEDeviceState extends State<SelectBLEDevice> {
 
   Future<void> _createProfile(String profileName) async {
     try {
-      await platform.invokeMethod('createProfile'
-          //, profileName
-          );
+      await platform.invokeMethod('createProfile', profileName);
     } catch (e) {
       //  Error invoking Android method
       if (e is PlatformException) {
@@ -175,6 +173,27 @@ class _SelectBLEDeviceState extends State<SelectBLEDevice> {
                                   "START_SCANNING");
                             },
                             child: Text('Start scan'))),
+          ),
+          SizedBox(height: 20.0),
+          Obx(
+            () => Center(
+                child:
+                    // false
+                    _selectDeviceController.sendingDataWedgeCommand.value
+                        ? SizedBox(
+                            height: 50.0,
+                            width: 50.0,
+                            child: CircularProgressIndicator(
+                              color: Colors.blue,
+                            ),
+                          )
+                        : ElevatedButton(
+                            onPressed: () async {
+                              await _sendDataWedgeCommand(
+                                  "com.symbol.datawedge.api.SOFT_SCAN_TRIGGER",
+                                  "STOP_SCANNING");
+                            },
+                            child: Text('Stop scan'))),
           ),
           SizedBox(height: 20.0),
           Text(
